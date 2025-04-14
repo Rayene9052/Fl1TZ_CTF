@@ -1,0 +1,36 @@
+from Crypto.Util.number import bytes_to_long, long_to_bytes
+import gmpy2
+
+c = 162063908225434320901043953289478008937769266820049529531088103328205243228522825318088120954914974350948147726616795513840703471427685157074935273301290456013755670266371349154550816982266188460849960535713756453748875196997604873443087226089560545447140192179559054665417035506586388568566879995331707827727713586286323139950350064088223975892091829079622912862
+e = 7
+n = 199555847098904718921208997706711704983235949057744126981066352226072407902855577298960226096215115744266723502404837879560323969780801566837397965698972776144183343357250426365972191275080459499721676827532927356370643908561364230079739152353235154717974596542838086823955950296675588163874793970583662114525893392659731871986718844757713104312497066820612091959
+
+prefix = bytes_to_long(b"FL1TZ{")
+suffix = bytes_to_long(b"}")
+middle_bytes = 16
+
+shift_suffix = 8
+shift_prefix = (middle_bytes + 1) * 8
+
+L = (prefix << shift_prefix) + suffix
+U = (prefix << shift_prefix) + ((1 << (middle_bytes * 8)) - 1) * (1 << shift_suffix) + suffix
+
+k_min = (pow(L, e) - c + n - 1) // n
+k_max = (pow(U, e) - c) // n
+
+print(f"Searching k in range [{k_min} to {k_max}]")
+
+for k in range(k_min, k_max + 1):
+    candidate = c + k * n
+    m_root, exact = gmpy2.iroot(candidate, e)
+    
+    if exact:
+        m = int(m_root)
+        flag = long_to_bytes(m)
+        
+        if flag.startswith(b"FL1TZ{") and flag.endswith(b"}"):
+            print(f"Found flag with k={k}:")
+            print(flag.decode())
+            break
+else:
+    print("No valid flag found in calculated k range")
